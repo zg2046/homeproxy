@@ -1,0 +1,38 @@
+name: Build ipk for luci-app-homeproxy
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  build:
+    name: Build luci-app-homeproxy for ${{ matrix.arch }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        arch: [aarch64_cortex-a53, x86_64] # Adjust architectures as needed
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Build ipk
+        uses: immortalwrt/gh-action-sdk@master
+        env:
+          ARCH: ${{ matrix.arch }}
+          FEED_DIR: luci
+          EXTRA_FEEDS: "luci https://github.com/immortalwrt/luci.git master"
+          PACKAGES: luci-app-homeproxy
+          ARTIFACTS_DIR: ./artifacts
+
+      - name: Store packages
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ matrix.arch }}-packages
+          path: ./artifacts/*.ipk
